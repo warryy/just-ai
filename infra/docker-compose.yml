@@ -1,0 +1,84 @@
+# Docker Compose 配置文件
+# 用于定义和管理多个容器的服务配置
+# 使用 docker-compose up -d 启动所有服务，docker-compose down 停止并删除容器
+
+services:
+  # PostgreSQL 数据库服务
+  # 使用 pgvector 扩展版本，支持向量相似度搜索（常用于 AI/ML 应用）
+  postgres:
+    # 使用的 Docker 镜像：pgvector/pgvector:pg16
+    # pgvector 是 PostgreSQL 的扩展，支持向量数据类型和相似度搜索
+    # pg16 表示基于 PostgreSQL 16 版本
+    image: pgvector/pgvector:pg16
+    
+    # 容器名称，便于识别和管理
+    container_name: just-ai-postgres
+    
+    # 重启策略：unless-stopped
+    # 表示容器会自动重启，除非手动停止
+    # 其他选项：always（总是重启）、on-failure（失败时重启）、no（不重启）
+    restart: unless-stopped
+    
+    # 环境变量配置
+    # PostgreSQL 容器启动时需要的初始化参数
+    environment:
+      # 数据库超级用户名称
+      POSTGRES_USER: justai
+      # 数据库超级用户密码（生产环境建议使用更安全的密码）
+      POSTGRES_PASSWORD: justai_pwd
+      # 默认创建的数据库名称
+      POSTGRES_DB: justai
+    
+    # 端口映射配置
+    # 格式：宿主机端口:容器内端口
+    # 将容器的 5432 端口映射到宿主机的 5432 端口
+    # 这样可以通过 localhost:5432 访问数据库
+    ports:
+      - "5432:5432"
+    
+    # 数据卷挂载配置
+    # 将命名卷挂载到容器内的数据目录
+    # 确保数据库数据持久化，即使容器删除数据也不会丢失
+    volumes:
+      # 使用命名卷 just_ai_pg 挂载到容器的数据目录
+      - just_ai_pg:/var/lib/postgresql/data
+
+  # Redis 缓存服务
+  # 用于缓存、会话存储、消息队列等场景
+  redis:
+    # 使用的 Docker 镜像：redis:7-alpine
+    # redis:7 表示 Redis 7.x 版本
+    # alpine 是基于 Alpine Linux 的轻量级镜像，体积更小
+    image: redis:7-alpine
+    
+    # 容器名称，便于识别和管理
+    container_name: just-ai-redis
+    
+    # 重启策略：unless-stopped
+    # 容器会自动重启，除非手动停止
+    restart: unless-stopped
+    
+    # 端口映射配置
+    # 将容器的 6379 端口（Redis 默认端口）映射到宿主机的 6379 端口
+    # 这样可以通过 localhost:6379 访问 Redis
+    ports:
+      - "6379:6379"
+    
+    # 数据卷挂载配置
+    # 将命名卷挂载到容器内的数据目录
+    # 确保 Redis 数据持久化（如果启用了持久化配置）
+    volumes:
+      # 使用命名卷 just_ai_redis 挂载到容器的数据目录
+      - just_ai_redis:/data
+
+# 命名卷定义
+# Docker 管理的持久化存储卷，用于保存容器数据
+# 即使删除容器，卷中的数据也会保留
+volumes:
+  # PostgreSQL 数据卷
+  # 存储 PostgreSQL 的所有数据库文件
+  just_ai_pg:
+  
+  # Redis 数据卷
+  # 存储 Redis 的持久化数据（如果启用了 RDB 或 AOF）
+  just_ai_redis:
