@@ -7,7 +7,9 @@
     "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
+    // 生成装饰器元数据（核心）, nestjs 通过ts编译器生成装饰器元数据，然后通过反射机制实现依赖注入
     "emitDecoratorMetadata": true,
+    // 启用装饰器（@Controller/@Injectable 等）
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
